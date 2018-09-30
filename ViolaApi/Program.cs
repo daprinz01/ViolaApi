@@ -5,8 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ViolaApi.Migrations;
 
 namespace ViolaApi
 {
@@ -14,7 +17,24 @@ namespace ViolaApi
     {
         public static void Main(string[] args)
         {
-            CreateWebHostBuilder(args).Build().Run();
+            var host = CreateWebHostBuilder(args);
+            using (var scope = host.Start().Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                try
+                {
+                    var dbInitializer = services.GetRequiredService<DbIntializer>();
+                    dbInitializer.Initialize();
+                }
+                catch(Exception e)
+                {
+                    throw (e);
+                }
+            }
+            
+            
+            host.Build().Run();
+            
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
